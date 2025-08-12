@@ -1,10 +1,11 @@
-Dart package and CLI tool for managing llama.cpp local setup (detecting, downloading, building).
+Dart package and CLI tool for managing llama.cpp local setup (detecting, downloading, building, running).
 
 ## Features
 
 - **Directory detection**: Detect existing llama.cpp installations and get version info
 - **GitHub integration**: Scrape recent versions and download/setup releases from GitHub
 - **Docker building**: Build llama.cpp with CUDA support using containerized environments
+- **Process management**: Manages `llama-server` processes with configuration, lifecycle control, and monitoring
 
 ## Usage
 
@@ -27,4 +28,24 @@ dart run llamacpp_tools docker build-builder --builder cuda-builder --container 
 
 # Run container to build llama.cpp
 dart run llamacpp_tools docker run-builder --container llama-cuda --version 3875 --output ./output
+```
+
+### Process Management
+```dart
+import 'package:llamacpp_tools/llamacpp_tools.dart';
+
+// Configure and start a server
+final config = LlamaserverConfig(
+  modelPath: '/path/to/model.gguf',
+  port: 8080,
+  threads: 4,
+);
+
+final process = LlamaserverProcess(
+  dir: LlamacppDir('/path/to/llama-cpp'),
+  config: config,
+);
+
+await process.start();
+print('Server running on port ${process.port}');
 ```
