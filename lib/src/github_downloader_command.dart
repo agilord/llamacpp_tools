@@ -87,7 +87,7 @@ class GithubSetupReleaseCommand extends Command<void> {
 
     // Verify installation by getting version
     try {
-      final installedVersion = await llamacppDir.getVersion();
+      final installedVersion = await llamacppDir.version;
       print('Installed version: $installedVersion');
     } catch (e) {
       print('Warning: Could not verify installed version: $e');

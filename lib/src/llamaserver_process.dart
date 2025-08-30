@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:json_annotation/json_annotation.dart';
+import 'package:path/path.dart' as p;
 import 'package:process_visor/process_visor.dart';
 
 import 'llamacpp_dir.dart';
@@ -58,6 +59,25 @@ class LlamaserverConfig {
   /// Creates a configuration from JSON data.
   factory LlamaserverConfig.fromJson(Map<String, dynamic> json) =>
       _$LlamaserverConfigFromJson(json);
+
+  LlamaserverConfig replace({
+    bool? flashAttention,
+    bool? mlock,
+    int? gpuLayers,
+  }) {
+    return LlamaserverConfig(
+      host: host,
+      port: port,
+      modelPath: modelPath,
+      threads: threads,
+      contextSize: contextSize,
+      embeddings: embeddings,
+      flashAttention: flashAttention ?? this.flashAttention,
+      mlock: mlock ?? this.mlock,
+      gpuLayers: gpuLayers ?? this.gpuLayers,
+      args: args,
+    );
+  }
 
   /// Converts the configuration to JSON data.
   Map<String, dynamic> toJson() => _$LlamaserverConfigToJson(this);
@@ -130,7 +150,7 @@ class LlamaserverProcess {
         if (_config.embeddings ?? false) '--embeddings',
         if (_config.mlock ?? false) '--mlock',
         if (_config.gpuLayers != null) ...[
-          ' --gpu-layers',
+          '--gpu-layers',
           '${_config.gpuLayers}',
         ],
         ...?_config.args,
@@ -143,6 +163,7 @@ class LlamaserverProcess {
           'main: server is listening on http://$host:$port - starting the main loop',
         );
       },
+      workingDirectory: p.dirname(serverPath),
     );
 
     await visor.start();

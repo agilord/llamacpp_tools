@@ -88,7 +88,7 @@ String _createVariableName(String fileName) {
   // Add "Dockerfile" suffix if not already present
   String variableName = camelCase;
   if (!camelCase.toLowerCase().endsWith('dockerfile')) {
-    variableName = camelCase + 'Dockerfile';
+    variableName = '${camelCase}Dockerfile';
   }
 
   // Make it private by adding underscore prefix

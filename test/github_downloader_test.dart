@@ -133,7 +133,7 @@ void main() {
 
         // Get and verify the version
         print('Verifying installation version...');
-        final installedVersion = await detectedDir.getVersion();
+        final installedVersion = await detectedDir.version;
         expect(
           installedVersion,
           equals(targetVersion),

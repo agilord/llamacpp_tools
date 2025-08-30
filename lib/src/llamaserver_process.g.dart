@@ -22,14 +22,14 @@ LlamaserverConfig _$LlamaserverConfigFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$LlamaserverConfigToJson(LlamaserverConfig instance) =>
     <String, dynamic>{
-      'host': instance.host,
-      'port': instance.port,
+      'host': ?instance.host,
+      'port': ?instance.port,
       'modelPath': instance.modelPath,
-      'threads': instance.threads,
-      'contextSize': instance.contextSize,
-      'embeddings': instance.embeddings,
-      'flashAttention': instance.flashAttention,
-      'mlock': instance.mlock,
-      'gpuLayers': instance.gpuLayers,
-      'args': instance.args,
+      'threads': ?instance.threads,
+      'contextSize': ?instance.contextSize,
+      'embeddings': ?instance.embeddings,
+      'flashAttention': ?instance.flashAttention,
+      'mlock': ?instance.mlock,
+      'gpuLayers': ?instance.gpuLayers,
+      'args': ?instance.args,
     };

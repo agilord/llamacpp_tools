@@ -13,7 +13,7 @@ class LlamacppDir {
   /// Creates a new LlamacppDir instance with the detected root path.
   ///
   /// [rootPath] - The directory path where llama.cpp was found
-  const LlamacppDir._(this.rootPath);
+  LlamacppDir._(this.rootPath);
 
   /// Detects a llama.cpp installation starting from the given path.
   ///
@@ -126,11 +126,9 @@ class LlamacppDir {
     return await _getBinaryPath('llama-cli');
   }
 
-  /// Gets the version of the llama.cpp installation by calling llama-cli --version.
-  ///
-  /// Returns the version string extracted from the llama-cli output.
-  /// Throws an exception if llama-cli is not found or the version cannot be parsed.
-  Future<String> getVersion() async {
+  /// Gets the full output of calling `llama-cli --version`.
+  /// Throws an exception if llama-cli is not found.
+  late final llamacliFullVersionOutput = () async {
     final cliPath = await getCliPath();
     if (cliPath == null) {
       throw StateError('llama-cli binary not found in $rootPath');
@@ -138,7 +136,9 @@ class LlamacppDir {
 
     try {
       // Run llama-cli --version command
-      final result = await Process.run(cliPath, ['--version']);
+      final result = await Process.run(cliPath, [
+        '--version',
+      ], workingDirectory: path.dirname(cliPath));
 
       if (result.exitCode != 0) {
         throw Exception(
@@ -147,34 +147,41 @@ class LlamacppDir {
       }
 
       // Parse the output to extract version
-      final output = result.stderr.toString();
-
-      // Look for pattern like "version: 6067 (f738989d)"
-      final versionMatch = RegExp(
-        r'version:\s*(\d+)\s*\([^)]+\)',
-      ).firstMatch(output);
-
-      if (versionMatch != null) {
-        final version = versionMatch.group(1);
-        if (version != null) {
-          return version;
-        }
-      }
-
-      // If the standard pattern doesn't match, try to find just the number
-      final numberMatch = RegExp(r'version:\s*(\d+)').firstMatch(output);
-      if (numberMatch != null) {
-        final version = numberMatch.group(1);
-        if (version != null) {
-          return version;
-        }
-      }
-
-      throw Exception('Could not parse version from llama-cli output: $output');
+      return result.stderr.toString();
     } catch (e) {
       throw Exception('Failed to get version from llama-cli: $e');
     }
-  }
+  }();
+
+  /// Gets the version of the llama.cpp installation by calling llama-cli --version.
+  ///
+  /// Returns the version string extracted from the llama-cli output.
+  /// Throws an exception if llama-cli is not found or the version cannot be parsed.
+  late final version = () async {
+    final output = await llamacliFullVersionOutput;
+    // Look for pattern like "version: 6067 (f738989d)"
+    final versionMatch = RegExp(
+      r'version:\s*(\d+)\s*\([^)]+\)',
+    ).firstMatch(output);
+
+    if (versionMatch != null) {
+      final version = versionMatch.group(1);
+      if (version != null) {
+        return version;
+      }
+    }
+
+    // If the standard pattern doesn't match, try to find just the number
+    final numberMatch = RegExp(r'version:\s*(\d+)').firstMatch(output);
+    if (numberMatch != null) {
+      final version = numberMatch.group(1);
+      if (version != null) {
+        return version;
+      }
+    }
+
+    throw Exception('Could not parse version from llama-cli output: $output');
+  }();
 
   /// Gets the relative path from a base directory to the detected root.
   ///

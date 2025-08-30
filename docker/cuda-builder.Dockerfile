@@ -89,6 +89,10 @@ find build/bin -type f -executable ! -name "test-*" -exec cp {} /output/ \; 2>/d
 echo "Copying shared libraries..."
 find build -name "*.so" -exec cp {} /output/ \; 2>/dev/null || true
 
+echo "Copying CUDA libraries..."
+cp /usr/local/cuda/targets/x86_64-linux/lib/libcublas* /output/
+cp /usr/local/cuda/targets/x86_64-linux/lib/libcuda* /output/
+
 # Set permissions on output binaries
 chmod +x /output/* 2>/dev/null || true
 

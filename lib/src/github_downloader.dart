@@ -71,7 +71,7 @@ Future<LlamacppDir> setupLllamacppReleaseFromGitHub({
   if (existingDir != null) {
     // Check if the existing installation matches the requested version
     try {
-      final existingVersion = await existingDir.getVersion();
+      final existingVersion = await existingDir.version;
       if (existingVersion == version) {
         return existingDir;
       } else {

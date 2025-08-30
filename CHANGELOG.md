@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Improved CUDA build (copying runtime libraries).
+- Small improvements in `LlamacppDir` and the server process.
+
 ## 0.1.1
 
 - Added support for running the `llama-server` process.
