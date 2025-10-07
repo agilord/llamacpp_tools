@@ -6,7 +6,7 @@ set -e
 echo "Generating Dart files from Docker files..."
 
 # Run the Dockerfile generator
-dart run lib/src/dockerfile_utils.dart
+dart run lib/src/docker/dockerfile_utils.dart
 
 echo "Formatting Dart code..."
 

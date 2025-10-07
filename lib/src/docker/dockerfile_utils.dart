@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 /// with const String variables for each Dockerfile found.
 Future<void> generateDockerfilesConstants() async {
   final dockerDir = Directory('docker');
-  final outputFile = File('lib/src/dockerfiles.g.dart');
+  final outputFile = File('lib/src/docker/dockerfiles.g.dart');
 
   if (!await dockerDir.exists()) {
     throw StateError('Docker directory not found: ${dockerDir.path}');

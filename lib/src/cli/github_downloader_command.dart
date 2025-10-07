@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 
-import 'github_downloader.dart';
+import '../llamacpp_github.dart';
 
 /// Main GitHub command that groups all GitHub-related subcommands.
 class GithubCommand extends Command<void> {
@@ -30,7 +30,7 @@ class GithubScrapeRecentVersionsCommand extends Command<void> {
   Future<void> run() async {
     print('Scraping recent versions from GitHub...');
 
-    final versions = await scrapeRecentLlamacppVersionsFromGitHub();
+    final versions = await LlamacppGithub.scrapeRecentVersions();
 
     if (versions.isEmpty) {
       print('No versions found.');
@@ -78,7 +78,7 @@ class GithubSetupReleaseCommand extends Command<void> {
 
     print('Setting up llama.cpp version $version in $targetPath...');
 
-    final llamacppDir = await setupLllamacppReleaseFromGitHub(
+    final llamacppDir = await LlamacppGithub.downloadAndSetupRelease(
       targetPath: targetPath,
       version: version,
     );

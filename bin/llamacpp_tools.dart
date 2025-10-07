@@ -3,8 +3,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:llamacpp_tools/src/docker_builder_command.dart';
-import 'package:llamacpp_tools/src/github_downloader_command.dart';
+import 'package:llamacpp_tools/src/cli/docker_builder_command.dart';
+import 'package:llamacpp_tools/src/cli/github_downloader_command.dart';
 
 /// Command runner for llamacpp_tools CLI
 class LlamacppToolsCommandRunner extends CommandRunner<void> {

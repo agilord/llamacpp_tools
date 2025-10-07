@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+**Breaking changes:**
+- Github methods are moved into the `LlamacppGithub` class and renamed.
+- Docker-builder methods are moved into the `LlamacppDocker` class and renamed.
+
 ## 0.1.2
 
 - Improved CUDA build (copying runtime libraries).

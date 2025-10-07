@@ -1,6 +1,6 @@
 name: llamacpp_tools
 description: Tools to manage llama.cpp local setup (detecting, downloading or building, running).
-version: 0.1.2
+version: 0.2.0
 homepage: https://github.com/agilord/llamacpp_tools
 topics:
   - llamacpp

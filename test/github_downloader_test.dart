@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
-import 'package:llamacpp_tools/src/github_downloader.dart';
+import 'package:llamacpp_tools/src/llamacpp_github.dart';
 import 'package:llamacpp_tools/src/llamacpp_dir.dart';
 
 void main() {
   group('GitHub Version Scraping', () {
     test('scrapeRecentVersionsFromGitHub returns versions', () async {
       // Call the function to scrape versions from GitHub
-      final versions = await scrapeRecentLlamacppVersionsFromGitHub();
+      final versions = await LlamacppGithub.scrapeRecentVersions();
 
       // Assert that we got some versions back
       expect(
@@ -34,7 +34,7 @@ void main() {
     });
 
     test('scrapeRecentVersionsFromGitHub returns unique versions', () async {
-      final versions = await scrapeRecentLlamacppVersionsFromGitHub();
+      final versions = await LlamacppGithub.scrapeRecentVersions();
 
       // Convert to set and back to list to check for duplicates
       final uniqueVersions = versions.toSet().toList();
@@ -56,7 +56,7 @@ void main() {
         print('Fetching recent versions from GitHub...');
 
         // Get recent versions
-        final versions = await scrapeRecentLlamacppVersionsFromGitHub();
+        final versions = await LlamacppGithub.scrapeRecentVersions();
         expect(
           versions,
           isNotEmpty,
@@ -78,7 +78,7 @@ void main() {
         print('Downloading and setting up llama.cpp to: $targetPath');
 
         // Download and setup the release
-        final llamacppDir = await setupLllamacppReleaseFromGitHub(
+        final llamacppDir = await LlamacppGithub.downloadAndSetupRelease(
           targetPath: targetPath,
           version: targetVersion,
         );
@@ -151,7 +151,7 @@ void main() {
 
         // Test that calling setup again with same version returns existing installation
         print('Testing setup with existing installation...');
-        final existingDir = await setupLllamacppReleaseFromGitHub(
+        final existingDir = await LlamacppGithub.downloadAndSetupRelease(
           targetPath: targetPath,
           version: targetVersion,
         );
@@ -166,7 +166,7 @@ void main() {
 
     test('setup fails with version mismatch', () async {
       // This test requires an existing installation from the previous test
-      final versions = await scrapeRecentLlamacppVersionsFromGitHub();
+      final versions = await LlamacppGithub.scrapeRecentVersions();
       expect(
         versions.length,
         greaterThan(1),
@@ -195,7 +195,7 @@ void main() {
 
       // Try to setup with a different version - should fail
       expect(
-        () => setupLllamacppReleaseFromGitHub(
+        () => LlamacppGithub.downloadAndSetupRelease(
           targetPath: targetPath,
           version: differentVersion,
         ),

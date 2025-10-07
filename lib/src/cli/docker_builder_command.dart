@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 
-import 'docker_builder.dart';
+import '../docker/docker_builder.dart';
 
 /// Main Docker command that groups all Docker-related subcommands.
 class DockerCommand extends Command<void> {
@@ -47,7 +47,10 @@ class BuildBuilderCommand extends Command<void> {
     final builder = argResults!['builder'] as String;
     final containerName = argResults!['container'] as String;
 
-    await dockerBuildBuilder(builder: builder, containerName: containerName);
+    await LlamacppDocker.buildBuilder(
+      builder: builder,
+      containerName: containerName,
+    );
   }
 
   @override
@@ -89,7 +92,7 @@ class RunBuilderCommand extends Command<void> {
     final version = argResults!['version'] as String;
     final outputDirectory = argResults!['output'] as String;
 
-    await dockerRunBuilder(containerName, version, outputDirectory);
+    await LlamacppDocker.runBuilder(containerName, version, outputDirectory);
   }
 
   @override
@@ -108,7 +111,7 @@ class ListBuildersCommand extends Command<void> {
 
   @override
   Future<void> run() async {
-    final builders = dockerListBuilders();
+    final builders = LlamacppDocker.listBuilders();
 
     if (builders.isEmpty) {
       print('No Dockerfile builders available.');

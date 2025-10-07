@@ -7,7 +7,7 @@ import 'package:llamacpp_tools/src/llamaserver_process.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import 'package:llamacpp_tools/src/github_downloader.dart';
+import 'package:llamacpp_tools/src/llamacpp_github.dart';
 
 void main() {
   group('LllamacppProcess', () {
@@ -15,7 +15,7 @@ void main() {
     late File modelFile;
 
     setUp(() async {
-      final versions = await scrapeRecentLlamacppVersionsFromGitHub();
+      final versions = await LlamacppGithub.scrapeRecentVersions();
       final targetVersion = versions.first;
       final llamaPath = path.join(
         '.dart_tool',
@@ -23,7 +23,7 @@ void main() {
         'llama_cpp',
         targetVersion,
       );
-      llamacppDir = await setupLllamacppReleaseFromGitHub(
+      llamacppDir = await LlamacppGithub.downloadAndSetupRelease(
         targetPath: llamaPath,
         version: targetVersion,
       );
