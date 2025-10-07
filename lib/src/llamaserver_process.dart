@@ -60,6 +60,7 @@ class LlamaserverConfig {
   factory LlamaserverConfig.fromJson(Map<String, dynamic> json) =>
       _$LlamaserverConfigFromJson(json);
 
+  // Creates a new config instance with updated values (if specified).
   LlamaserverConfig replace({
     bool? flashAttention,
     bool? mlock,

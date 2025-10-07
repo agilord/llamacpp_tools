@@ -42,7 +42,7 @@ final config = LlamaserverConfig(
 );
 
 final process = LlamaserverProcess(
-  dir: LlamacppDir('/path/to/llama-cpp'),
+  dir: (await LlamacppDir.detect('/path/to/llama-cpp'))!,
   config: config,
 );
 
