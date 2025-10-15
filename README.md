@@ -6,6 +6,7 @@ Dart package and CLI tool for managing llama.cpp local setup (detecting, downloa
 - **GitHub integration**: Scrape recent versions and download/setup releases from GitHub
 - **Docker building**: Build llama.cpp with CUDA support using containerized environments
 - **Process management**: Manages `llama-server` processes with configuration, lifecycle control, and monitoring
+- **Model-switcher**: Supports switchable models/configurations via [`package:process_visor`](https://pub.dev/packages/process_visor) (`ProcessSwitcher` used with `LlamaserverSpec`).
 
 ## Usage
 

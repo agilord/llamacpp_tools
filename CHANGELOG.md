@@ -6,6 +6,9 @@
 - Github methods are moved into the `LlamacppGithub` class and renamed.
 - Docker-builder methods are moved into the `LlamacppDocker` class and renamed.
 
+**New feature:**
+- Supports `LlamaserverSpec` to support `ProcessSwitcher` (see `package:process_visor`) (e.g. to implement an alternative llama-switcher).
+
 ## 0.1.2
 
 - Improved CUDA build (copying runtime libraries).

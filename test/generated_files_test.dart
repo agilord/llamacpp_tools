@@ -13,8 +13,6 @@ void main() {
         return;
       }
 
-      print('Running file generation...');
-
       // Run the generate_files.sh script
       final result = await Process.run('bash', [
         'tool/generate_files.sh',
@@ -27,8 +25,6 @@ void main() {
           'stderr: ${result.stderr}',
         );
       }
-
-      print('File generation completed. Checking for git changes...');
 
       // Check if any .g.dart files have been modified
       final gitStatusResult = await Process.run('git', [
@@ -64,8 +60,6 @@ void main() {
           'Git status output:\n$gitOutput',
         );
       }
-
-      print('✅ All generated files are up to date');
     });
   });
 }

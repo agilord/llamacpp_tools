@@ -62,13 +62,15 @@ class LlamaserverConfig {
 
   // Creates a new config instance with updated values (if specified).
   LlamaserverConfig replace({
+    String? host,
+    int? port,
     bool? flashAttention,
     bool? mlock,
     int? gpuLayers,
   }) {
     return LlamaserverConfig(
-      host: host,
-      port: port,
+      host: host ?? this.host,
+      port: port ?? this.port,
       modelPath: modelPath,
       threads: threads,
       contextSize: contextSize,
@@ -82,6 +84,41 @@ class LlamaserverConfig {
 
   /// Converts the configuration to JSON data.
   Map<String, dynamic> toJson() => _$LlamaserverConfigToJson(this);
+}
+
+extension PrivateLlamaserverConfigExt on LlamaserverConfig {
+  bool accept(LlamaserverConfig other) {
+    if (this == other) return true;
+    if (modelPath != other.modelPath) {
+      return false;
+    }
+    if ((contextSize ?? 4096) < (other.contextSize ?? 4096)) {
+      return false;
+    }
+    if ((flashAttention ?? false) != (other.flashAttention ?? false)) {
+      return false;
+    }
+    if ((embeddings ?? false) != (other.embeddings ?? false)) {
+      return false;
+    }
+    if ((gpuLayers ?? 0) < (other.gpuLayers ?? 0)) {
+      return false;
+    }
+    if (gpuLayers == null && other.gpuLayers != null) {
+      return false;
+    }
+    final args1 = args ?? const <String>[];
+    final args2 = other.args ?? const <String>[];
+    if (args1.length != args2.length) {
+      return false;
+    }
+    for (var i = 0; i < args1.length; i++) {
+      if (args1[i] != args2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /// Manages a llama.cpp server process lifecycle.
@@ -131,7 +168,10 @@ class LlamaserverProcess {
     }
 
     final host = _config.host ?? '0.0.0.0';
-    _actualPort = _config.port ?? await _detectFreePort();
+    final configPort = _config.port;
+    _actualPort = configPort != null && configPort > 0
+        ? configPort
+        : await _detectFreePort();
 
     final visor = _visor = ProcessVisor(
       args: [
@@ -139,7 +179,7 @@ class LlamaserverProcess {
         '--host',
         host,
         '--port',
-        port.toString(),
+        _actualPort.toString(),
         '--model',
         _config.modelPath,
         if (_config.threads != null) ...['--threads', '${_config.threads}'],
@@ -175,9 +215,9 @@ class LlamaserverProcess {
   ///
   /// Gracefully shuts down the server process and cleans up resources.
   /// Does nothing if the server is not running.
-  Future<void> stop() async {
+  Future<void> stop({bool force = false}) async {
     if (_visor != null) {
-      await _visor!.stop();
+      await _visor!.stop(force: force);
       _visor = null;
     }
     _actualPort = null;

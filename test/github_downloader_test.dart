@@ -26,11 +26,6 @@ void main() {
         );
         expect(version, isA<String>(), reason: 'Version should be a string');
       }
-
-      // Print versions for debugging (optional)
-      print(
-        'Found ${versions.length} versions: ${versions.take(5).join(', ')}${versions.length > 5 ? '...' : ''}',
-      );
     });
 
     test('scrapeRecentVersionsFromGitHub returns unique versions', () async {
@@ -51,10 +46,6 @@ void main() {
     test(
       'download and verify llama.cpp installation',
       () async {
-        // This test downloads a real release, so it may take some time
-        // and requires internet connection
-        print('Fetching recent versions from GitHub...');
-
         // Get recent versions
         final versions = await LlamacppGithub.scrapeRecentVersions();
         expect(
@@ -65,7 +56,6 @@ void main() {
 
         // Pick the first (most recent) version
         final targetVersion = versions.first;
-        print('Using version: $targetVersion');
 
         // Setup target directory
         final targetPath = path.join(
@@ -74,8 +64,6 @@ void main() {
           'llama_cpp',
           targetVersion,
         );
-
-        print('Downloading and setting up llama.cpp to: $targetPath');
 
         // Download and setup the release
         final llamacppDir = await LlamacppGithub.downloadAndSetupRelease(
@@ -96,7 +84,6 @@ void main() {
         );
 
         // Detect the installation
-        print('Detecting llama.cpp installation...');
         final detectedDir = await LlamacppDir.detect(targetPath);
         expect(
           detectedDir,
@@ -132,16 +119,11 @@ void main() {
         );
 
         // Get and verify the version
-        print('Verifying installation version...');
         final installedVersion = await detectedDir.version;
         expect(
           installedVersion,
           equals(targetVersion),
           reason: 'Installed version should match requested version',
-        );
-
-        print(
-          'Successfully verified llama.cpp version $installedVersion installation',
         );
 
         // Test that detecting the same directory again returns the same result
@@ -150,7 +132,6 @@ void main() {
         expect(secondDetection!.rootPath, equals(detectedDir.rootPath));
 
         // Test that calling setup again with same version returns existing installation
-        print('Testing setup with existing installation...');
         final existingDir = await LlamacppGithub.downloadAndSetupRelease(
           targetPath: targetPath,
           version: targetVersion,
