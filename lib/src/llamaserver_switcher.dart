@@ -68,3 +68,7 @@ class LlamaserverSpec extends ProcessSpec<LlamaserverContext> {
     return LlamaserverContext._(process, concurrency: 1);
   }
 }
+
+extension PrivateLlamaserverSpecExt on LlamaserverSpec {
+  LlamaserverConfig get config => _config;
+}

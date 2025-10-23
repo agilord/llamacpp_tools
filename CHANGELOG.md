@@ -6,7 +6,7 @@
 - `LlamaserverConfig.flashAttention` is now an enum `FlashAttention`.
 
 **New feature:**
-- Supports `LlamaserverSpec` to support `ProcessSwitcher` (see `package:process_visor`) (e.g. to implement an alternative llama-switcher).
+- `LlamaserverSpec` to support `ProcessSwitcher` (see `package:process_visor`) + lookup from `LlamaserverSpecRegistry` (to implement an alternative `llama-swap`).
 - Supports detecting optimal parameters for models not fitting into VRAM (CLI or `ModelDetector`).
 
 ## 0.2.0
