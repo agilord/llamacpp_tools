@@ -19,7 +19,7 @@ class LlamaserverConfig {
   final int? port;
 
   /// Path to the model file to load.
-  final String modelPath;
+  final String? modelPath;
 
   /// Number of threads to use for processing. Defaults to system optimal.
   final int? threads;
@@ -30,8 +30,8 @@ class LlamaserverConfig {
   /// Whether to enable embeddings endpoint.
   final bool? embeddings;
 
-  /// Whether to enable flash attention optimization.
-  final bool? flashAttention;
+  /// The value of the flash attention option.
+  final FlashAttention? flashAttention;
 
   /// Whether to lock the model in memory to prevent swapping.
   final bool? mlock;
@@ -39,22 +39,37 @@ class LlamaserverConfig {
   /// Number of layers to offload to GPU for acceleration.
   final int? gpuLayers;
 
+  /// Number of MoE experts to keep on CPU (--n-cpu-moe).
+  final int? nCpuMoe;
+
+  /// Tensor override patterns for selective CPU offloading (--override-tensors).
+  /// Each pattern is in the format "name=CPU" (e.g., "ffn_up.*=CPU").
+  final List<String>? overrideTensors;
+
   /// Additional command line arguments to pass to the server.
   final List<String>? args;
 
   /// Creates a new server configuration.
   LlamaserverConfig({
-    this.host,
-    this.port,
-    required this.modelPath,
+    String? host,
+    int? port,
+    String? modelPath,
     this.threads,
     this.contextSize,
     this.embeddings,
-    this.flashAttention,
+    FlashAttention? flashAttention,
     this.mlock,
     this.gpuLayers,
+    this.nCpuMoe,
+    this.overrideTensors,
     this.args,
-  });
+  }) : host = host != null && host.isNotEmpty ? host : null,
+       port = (port ?? 0) == 0 ? null : port,
+       modelPath = modelPath != null && modelPath.isNotEmpty ? modelPath : null,
+       flashAttention =
+           (flashAttention ?? FlashAttention.auto) == FlashAttention.auto
+           ? null
+           : flashAttention;
 
   /// Creates a configuration from JSON data.
   factory LlamaserverConfig.fromJson(Map<String, dynamic> json) =>
@@ -64,20 +79,25 @@ class LlamaserverConfig {
   LlamaserverConfig replace({
     String? host,
     int? port,
-    bool? flashAttention,
+    String? modelPath,
+    FlashAttention? flashAttention,
     bool? mlock,
     int? gpuLayers,
+    int? nCpuMoe,
+    List<String>? overrideTensors,
   }) {
     return LlamaserverConfig(
       host: host ?? this.host,
       port: port ?? this.port,
-      modelPath: modelPath,
+      modelPath: modelPath ?? this.modelPath,
       threads: threads,
       contextSize: contextSize,
       embeddings: embeddings,
       flashAttention: flashAttention ?? this.flashAttention,
       mlock: mlock ?? this.mlock,
       gpuLayers: gpuLayers ?? this.gpuLayers,
+      nCpuMoe: nCpuMoe ?? this.nCpuMoe,
+      overrideTensors: overrideTensors ?? this.overrideTensors,
       args: args,
     );
   }
@@ -86,39 +106,61 @@ class LlamaserverConfig {
   Map<String, dynamic> toJson() => _$LlamaserverConfigToJson(this);
 }
 
+enum FlashAttention { on, off, auto }
+
 extension PrivateLlamaserverConfigExt on LlamaserverConfig {
+  int get _contextSizeOr4096 => contextSize ?? 4096;
+  FlashAttention get _flashAttentionOrAuto =>
+      flashAttention ?? FlashAttention.auto;
+  bool get _embeddingsOrFalse => embeddings ?? false;
+  int get _gpuLayersOr0 => gpuLayers ?? 0;
+  int get _nCpuMoeOr0 => nCpuMoe ?? 0;
+
   bool accept(LlamaserverConfig other) {
     if (this == other) return true;
     if (modelPath != other.modelPath) {
       return false;
     }
-    if ((contextSize ?? 4096) < (other.contextSize ?? 4096)) {
+    if (_contextSizeOr4096 < other._contextSizeOr4096) {
       return false;
     }
-    if ((flashAttention ?? false) != (other.flashAttention ?? false)) {
+    if (_flashAttentionOrAuto != other._flashAttentionOrAuto) {
       return false;
     }
-    if ((embeddings ?? false) != (other.embeddings ?? false)) {
+    if (_embeddingsOrFalse != other._embeddingsOrFalse) {
       return false;
     }
-    if ((gpuLayers ?? 0) < (other.gpuLayers ?? 0)) {
+    if (_gpuLayersOr0 < other._gpuLayersOr0) {
       return false;
     }
     if (gpuLayers == null && other.gpuLayers != null) {
       return false;
     }
-    final args1 = args ?? const <String>[];
-    final args2 = other.args ?? const <String>[];
-    if (args1.length != args2.length) {
+    if (_nCpuMoeOr0 > other._nCpuMoeOr0) {
       return false;
     }
-    for (var i = 0; i < args1.length; i++) {
-      if (args1[i] != args2[i]) {
-        return false;
-      }
+    if (_differs(overrideTensors, other.overrideTensors)) {
+      return false;
+    }
+    if (_differs(args, other.args)) {
+      return false;
     }
     return true;
   }
+}
+
+bool _differs(List<String>? a, List<String>? b) {
+  a ??= const <String>[];
+  b ??= const <String>[];
+  if (a.length != b.length) {
+    return true;
+  }
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /// Manages a llama.cpp server process lifecycle.
@@ -167,6 +209,27 @@ class LlamaserverProcess {
       throw StateError('llama-server not found in ${_dir.rootPath}');
     }
 
+    if (_config.modelPath == null) {
+      throw ArgumentError('`modelPath` must be specified.');
+    }
+
+    List<String>? flashAttentionParams;
+    if (_config.flashAttention != null) {
+      final effectiveFlashAttention =
+          _config.flashAttention ?? FlashAttention.auto;
+      final cliHelp = await _dir.llamacliFullHelpOutput;
+      final useEnumFlashAttention = cliHelp.contains(
+        ' --flash-attn [on|off|auto]',
+      );
+      if (useEnumFlashAttention) {
+        flashAttentionParams = ['--flash-attn', _config.flashAttention!.name];
+      } else {
+        if (effectiveFlashAttention == FlashAttention.on) {
+          flashAttentionParams = ['--flash-attn'];
+        }
+      }
+    }
+
     final host = _config.host ?? '0.0.0.0';
     final configPort = _config.port;
     _actualPort = configPort != null && configPort > 0
@@ -181,19 +244,25 @@ class LlamaserverProcess {
         '--port',
         _actualPort.toString(),
         '--model',
-        _config.modelPath,
+        _config.modelPath!,
         if (_config.threads != null) ...['--threads', '${_config.threads}'],
         if (_config.contextSize != null) ...[
           '--ctx-size',
           '${_config.contextSize}',
         ],
-        if (_config.flashAttention ?? false) '--flash-attn',
+        ...?flashAttentionParams,
         if (_config.embeddings ?? false) '--embeddings',
         if (_config.mlock ?? false) '--mlock',
         if (_config.gpuLayers != null) ...[
           '--gpu-layers',
           '${_config.gpuLayers}',
         ],
+        if (_config.nCpuMoe != null) ...['--n-cpu-moe', '${_config.nCpuMoe}'],
+        if (_config.overrideTensors != null)
+          for (final pattern in _config.overrideTensors!) ...[
+            '--override-tensors',
+            pattern,
+          ],
         ...?_config.args,
       ],
       logWriter:

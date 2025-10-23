@@ -24,14 +24,19 @@ class TestSetup {
     );
 
     modelFile = File(
-      path.join('.dart_tool', 'cached', 'model', 'gte-small.Q2_K.gguf'),
+      path.join(
+        '.dart_tool',
+        'cached',
+        'model',
+        'SmolLM2-135M-Instruct-Q4_K_M.gguf',
+      ),
     ).absolute;
     if (!await modelFile.exists()) {
       await modelFile.parent.create(recursive: true);
-      final model = await getModelInfo('ChristianAzinn/gte-small-gguf');
+      final model = await getModelInfo('unsloth/SmolLM2-135M-Instruct-GGUF');
 
       final ggufFile = model.ggufModelFiles.firstWhere(
-        (f) => f.filename == 'gte-small.Q2_K.gguf',
+        (f) => f.filename == 'SmolLM2-135M-Instruct-Q4_K_M.gguf',
       );
       await downloadFile(ggufFile, targetFilePath: modelFile.path);
     }

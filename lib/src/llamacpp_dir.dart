@@ -153,6 +153,32 @@ class LlamacppDir {
     }
   }();
 
+  /// Gets the full output of calling `llama-cli --help`.
+  /// Throws an exception if llama-cli is not found.
+  late final llamacliFullHelpOutput = () async {
+    final cliPath = await getCliPath();
+    if (cliPath == null) {
+      throw StateError('llama-cli binary not found in $rootPath');
+    }
+    try {
+      // Run llama-cli --help command
+      final result = await Process.run(cliPath, [
+        '--help',
+      ], workingDirectory: path.dirname(cliPath));
+
+      if (result.exitCode != 0) {
+        throw Exception(
+          'llama-cli --help failed with exit code ${result.exitCode}: ${result.stderr}',
+        );
+      }
+
+      // Parse the output to extract version
+      return result.stdout.toString();
+    } catch (e) {
+      throw Exception('Failed to get help from llama-cli: $e');
+    }
+  }();
+
   /// Gets the version of the llama.cpp installation by calling llama-cli --version.
   ///
   /// Returns the version string extracted from the llama-cli output.
